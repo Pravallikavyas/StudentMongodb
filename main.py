@@ -65,6 +65,27 @@ x =exam_data.aggregate(
   ])
 for i in x:
     print(i)
+#A query to print the sum and average of all the students in all categories
+print("4>Sum and average of all the students")
+avgtotal = db.avgtotal_collection
+agg =exam_data.aggregate([
+    {"$unwind":"$scores"},
+    {"$group":
+     {
+         "_id":"$_id",
+        "name":{"$first":"$name"}
+      ,
+     "Total":{"$sum":"$scores.score"},
+      "Average":{"$avg":"$scores.score"}
+      }
+     },
+     {"$sort":{"_id":1}}
+     ])
+avgtt = []
+for i in agg:
+  avgtt.append(i)
+  print(i)
+avgtotal.insert_many(avgtt)
 #A query to store documents of students who scored below average and above 40% in collection below average
 print("5>Students who scored below average and above 40% ")
 passandavg = db.belowaverage
@@ -83,3 +104,36 @@ for i in p:
   pavg.append(i)
   print(i)
 passandavg.insert_many(pavg)
+#A query to print the details of the student who scored below pass mark
+print("6>Students who scored below pass marks")
+fail = db.allfail_collection
+agg = exam_data.aggregate(
+[{"$match": 
+   {"$expr": 
+         {"$lt": [{"$max": "$scores.score"}, 40]
+          }
+        
+      }
+    }
+  ])
+failed = []
+for i in agg:
+  failed.append(i)
+  print(i)
+fail.insert_many(failed)
+#A query to print the student details who scored above pass marks
+print("7>Students who got above pass marks")
+pas = db.allpass_collection
+agg = exam_data.aggregate(
+[{"$match": 
+   {"$expr": 
+         {"$gt": [{"$min": "$scores.score"}, 40]
+          }
+        }
+    }
+  ])
+passed = []
+for i in agg:
+  passed.append(i)
+  print(i)
+pas.insert_many(passed)  
